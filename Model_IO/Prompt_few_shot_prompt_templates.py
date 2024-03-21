@@ -12,7 +12,8 @@ from langchain_core.prompts.few_shot import FewShotPromptTemplate
 from langchain_core.prompts.prompt import PromptTemplate
 from langchain_core.example_selectors import SemanticSimilarityExampleSelector
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings, OpenAI
+from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv, find_dotenv
 
 _ = load_dotenv(find_dotenv())
@@ -92,7 +93,7 @@ example_selector = SemanticSimilarityExampleSelector.from_examples(
     k=1
 )
 
-question = "Who is the best NBA player? Lebron James or Micheal Jordan?"
+question = "Are Lebron James and Kobe Bryant born from the same city?"
 selected_examples = example_selector.select_examples({"question:": question})
 print(f"Examples most similar to the input: {question}")
 for example in selected_examples:
@@ -105,4 +106,10 @@ prompt = FewShotPromptTemplate(
     suffix="Question: {input}",
     input_variables=["input"]
 )
-print(prompt.format(input="Who is the best NBA player? Lebron James or Micheal Jordan?"))
+print(prompt.format(input="Are Lebron James and Kobe Bryant born from the same city?"))
+
+llm = OpenAI()
+output_parser = StrOutputParser()
+chain = prompt | llm | output_parser
+response = chain.invoke({"input": "Are Lebron James and Kobe Bryant born from the same city?"})
+print(response)
